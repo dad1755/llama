@@ -1,6 +1,6 @@
 import streamlit as st
 from transformers import pipeline
-from huggingface_hub import login
+import os
 
 # Check if secrets are available
 if st.secrets:
@@ -10,13 +10,13 @@ if st.secrets:
     huggingface_api_token = st.secrets["api_keys"]["HUGGINGFACE_API_TOKEN"]
 
     if huggingface_api_token:
-        # Login to Hugging Face using the API token
-        login(huggingface_api_token)
+        # Set the Hugging Face token as an environment variable
+        os.environ["HUGGINGFACEHUB_API_TOKEN"] = huggingface_api_token
 
         # Create the text generation pipeline
         try:
             pipe = pipeline("text-generation", model="meta-llama/Llama-3.2-1B")
-            
+
             # User input
             user_input = st.text_input("Enter your prompt:")
 
