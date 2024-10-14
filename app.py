@@ -1,3 +1,4 @@
+import streamlit as st
 import requests
 import json
 
@@ -8,29 +9,37 @@ headers = {"Authorization": "Bearer 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"}
 def query(payload):
     try:
         # Send a POST request to the API URL with the provided payload
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=10)  # Added timeout
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=10)
         
         # Check if the request was successful
-        response.raise_for_status()  # This will raise an error for HTTP errors
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")  # Log HTTP errors
+        st.error(f"HTTP error occurred: {http_err}")
     except requests.exceptions.ConnectionError as conn_err:
-        print(f"Connection error occurred: {conn_err}")  # Log connection errors
+        st.error(f"Connection error occurred: {conn_err}")
     except requests.exceptions.Timeout as timeout_err:
-        print(f"Request timed out: {timeout_err}")  # Log timeout errors
+        st.error(f"Request timed out: {timeout_err}")
     except requests.exceptions.RequestException as req_err:
-        print(f"An error occurred: {req_err}")  # Log any other request errors
+        st.error(f"An error occurred: {req_err}")
     return None
 
-# Example query payload
-output = query({
-    "inputs": "Can you please let us know more details about your "
-})
+# Streamlit user interface
+st.title("Hugging Face API Query")
 
-# Output the response from the model
-if output:
-    print("Response from model:")
-    print(output)
-else:
-    print("No response received.")
+# Input box for user query
+user_input = st.text_input("Enter your query:", "")
+
+if st.button("Submit"):
+    if user_input:
+        with st.spinner("Generating response..."):
+            output = query({"inputs": user_input})
+        
+        # Display the response
+        if output:
+            st.subheader("Response from Model:")
+            st.write(output)
+        else:
+            st.write("No response received.")
+    else:
+        st.error("Please enter a query before submitting.")
