@@ -1,6 +1,6 @@
 import streamlit as st
+from huggingface_hub import login
 from transformers import pipeline
-import os
 
 # Check if secrets are available
 if st.secrets:
@@ -10,11 +10,12 @@ if st.secrets:
     huggingface_api_token = st.secrets["api_keys"]["HUGGINGFACE_API_TOKEN"]
 
     if huggingface_api_token:
-        # Set the Hugging Face token as an environment variable
-        os.environ["HUGGINGFACEHUB_API_TOKEN"] = huggingface_api_token
-
-        # Create the text generation pipeline
+        # Log into Hugging Face using the API token
         try:
+            login(token=huggingface_api_token)
+            st.success("Successfully logged into Hugging Face!")
+
+            # Create the text generation pipeline
             pipe = pipeline("text-generation", model="meta-llama/Llama-3.2-1B")
 
             # User input
@@ -28,6 +29,8 @@ if st.secrets:
                 else:
                     st.warning("Please enter a prompt to generate text.")
         except Exception as e:
-            st.error(f"Error creating the pipeline: {e}")
+            st.error(f"Error logging in or creating the pipeline: {e}")
+    else:
+        st.error("Hugging Face token not found in secrets!")
 else:
     st.write("No secrets found!")
