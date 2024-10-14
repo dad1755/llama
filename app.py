@@ -1,52 +1,45 @@
 import streamlit as st
-from huggingface_hub import login
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import torch
+import requests
+import json
 
-# Check if secrets are available
-if st.secrets:
-    st.write("Secrets exist!")
+# Streamlit app title
+st.title("vLLM Chatbot")
 
-    # Access the Hugging Face API token from secrets
-    huggingface_api_token = st.secrets["api_keys"]["HUGGINGFACE_API_TOKEN"]
+# Define the vLLM server URL
+vllm_url = "http://localhost:8000/v1/chat/completions"
 
-    if huggingface_api_token:
-        # Log into Hugging Face using the API token
-        try:
-            login(token=huggingface_api_token)
-            st.success("Successfully logged into Hugging Face!")
-        except Exception as e:
-            st.error(f"Login failed: {e}")
-            st.stop()
+# User input prompt
+user_input = st.text_input("Enter your prompt:")
 
-        # Try to load the model and tokenizer directly
-        try:
-            st.write("Loading model and tokenizer...")
+# Function to send the request to the vLLM server
+def get_vllm_response(prompt):
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "model": "meta-llama/Llama-3.2-1B",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+    
+    # Send the request to the vLLM server
+    response = requests.post(vllm_url, headers=headers, data=json.dumps(data))
+    
+    if response.status_code == 200:
+        # Extract the generated text from the response
+        result = response.json()
+        return result["choices"][0]["message"]["content"]
+    else:
+        st.error(f"Error: {response.status_code} - {response.text}")
+        return None
 
-            # Load the tokenizer and model directly
-            tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
-            model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-1B")
+# When the user presses the 'Generate' button
+if st.button("Generate"):
+    if user_input:
+        # Get the response from the vLLM server
+        with st.spinner("Generating response..."):
+            generated_text = get_vllm_response(user_input)
 
-            st.success("Model and tokenizer successfully loaded!")
-
-            # User input
-            user_input = st.text_input("Enter your prompt:")
-
-            if st.button("Generate"):
-                if user_input:
-                    # Tokenize the input
-                    inputs = tokenizer(user_input, return_tensors="pt")
-
-                    # Generate text (using a small max_length to prevent resource issues)
-                    with st.spinner("Generating text..."):
-                        outputs = model.generate(inputs["input_ids"], max_length=50)
-
-                    # Decode and display the generated text
-                    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-                    st.write("Generated Text:", generated_text)
-                else:
-                    st.warning("Please enter a prompt to generate text.")
-        except Exception as e:
-            st.error(f"Error loading the model or generating text: {e}")
-else:
-    st.write("No secrets found!")
+        if generated_text:
+            st.write("Generated Response:", generated_text)
+    else:
+        st.warning("Please enter a prompt.")
