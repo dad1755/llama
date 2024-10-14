@@ -9,7 +9,7 @@ headers = {"Authorization": "Bearer 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"}
 def query(payload):
     try:
         # Send a POST request to the API URL with the provided payload
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=10)
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=60)
         
         # Check if the request was successful
         response.raise_for_status()
