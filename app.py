@@ -1,20 +1,17 @@
 import streamlit as st
 from transformers import pipeline
-import os
+from huggingface_hub import login
 
 # Check if secrets are available
 if st.secrets:
     st.write("Secrets exist!")
 
-    # Access the REPLICATE_API_TOKEN from secrets
-    replicate_api_token = st.secrets["api_keys"]["REPLICATE_API_TOKEN"]
-    
     # Access the Hugging Face API token from secrets
     huggingface_api_token = st.secrets["api_keys"]["HUGGINGFACE_API_TOKEN"]
 
     if huggingface_api_token:
-        # Set the Hugging Face token in the environment
-        os.environ["HUGGINGFACEHUB_API_TOKEN"] = huggingface_api_token
+        # Login to Hugging Face using the API token
+        login(huggingface_api_token)
 
         # Create the text generation pipeline
         try:
