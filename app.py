@@ -2,24 +2,15 @@ import streamlit as st
 from transformers import pipeline
 import os
 
-# Function to read the Hugging Face token
-def get_huggingface_token():
-    try:
-        with open(os.path.expanduser("~/.huggingface/token"), "r") as f:
-            return f.read().strip()
-    except FileNotFoundError:
-        st.error("Hugging Face token not found. Please login using 'huggingface-cli login'.")
-        return None
-
 # Check if secrets are available
 if st.secrets:
     st.write("Secrets exist!")
 
     # Access the REPLICATE_API_TOKEN from secrets
-    replicate_api_token = st.secrets["REPLICATE_API_TOKEN"]
-
-    # Get the Hugging Face API token
-    huggingface_api_token = get_huggingface_token()
+    replicate_api_token = st.secrets["api_keys"]["REPLICATE_API_TOKEN"]
+    
+    # Access the Hugging Face API token from secrets
+    huggingface_api_token = st.secrets["api_keys"]["HUGGINGFACE_API_TOKEN"]
 
     if huggingface_api_token:
         # Set the Hugging Face token in the environment
